@@ -1,20 +1,30 @@
 {
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "dist"
+  },
+  "ts-node": {
     "compilerOptions": {
-        "strict": true,
-        "target": "es2021",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "allowJs": true,
-        "allowSyntheticDefaultImports": true
-    },
-    "ts-node": {
-      "compilerOptions": {
-        "module": "commonjs"
-      }
-    },
-    "exclude": [
-        "node_modules",
-        "dist",
-        "webpack.config.js"
-    ]
+      "module": "commonjs"
+    }
+  },
+  "exclude": [
+    "tests",
+    "node_modules",
+    "dist",
+    "webpack.config.js",
+    "jest.config.js"
+  ]
 }
