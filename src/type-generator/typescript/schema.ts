@@ -47,7 +47,7 @@ const getNameFromRef = (ref: string) => {
   return escapeName(name);
 };
 
-class ModelRegistry {
+export class ModelRegistry {
   private models: Dict<any> = {};
 
   registerModel(name: string, model: any) {
@@ -101,9 +101,11 @@ const processComposition = (
   });
 
   let discriminator;
+  let hasMapping = false;
   if (schema.discriminator) {
     discriminator = schema.discriminator.propertyName;
     if (schema.discriminator.mapping) {
+      hasMapping = true;
       Object.entries(schema.discriminator.mapping).forEach(([value, ref]: any) => {
         let index = refToIndex[ref];
         if (index == null) {
@@ -124,6 +126,8 @@ const processComposition = (
     compositionType,
     subSchemas,
     discriminator,
+    hasMapping,
+    isComposition: true,
   };
 };
 
@@ -188,8 +192,9 @@ export const processObject = (
     }
     return {
       ...propModel,
-      required: schema.required ? schema.required.includes(propName) : false,
-      name: propName,
+      required: Boolean((schema.required && schema.required.includes(propName)) || propModel.original.default != null),
+      propName: propName,
+      propType: propModel.name,
     };
   });
   const model: any = {
@@ -223,9 +228,13 @@ export const processObject = (
       );
     }
   }
+  if (model.hasAdditionalProperties && schema.properties == null) {
+    model.isDictionary = true;
+  }
 
   if (isComposition(schema)) {
     model.composition = processComposition(modelRegistry, document, schema, myName);
+    model.isComposition = true;
   }
 
   return model;
@@ -260,6 +269,9 @@ const processSchema = (
 
   if (model && model.name) {
     modelRegistry.registerModel(model.name, model);
+  }
+  if (model && model.composition && model.composition.name) {
+    modelRegistry.registerModel(model.composition.name, model.composition);
   }
   return model;
 };

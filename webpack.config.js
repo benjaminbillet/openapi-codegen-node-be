@@ -7,13 +7,39 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
+        use: ['babel-loader',
+          {
+            loader: 'ts-loader',
+            options: {
+              configFile: path.resolve('tsconfig-package.json')
+            }
+          },
+        ],
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.js$/,
+        use: 'babel-loader',
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.hbs$/,
+        use: [
+          {
+            loader: path.resolve('handlebars-loader/handlebars-loader.js'),
+            options: {
+              precompileOptions: {
+                knownHelpersOnly: false,
+              },
+            },
+          },
+        ],
         exclude: /node_modules/,
       },
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.hbs'],
   },
   output: {
     filename: 'index.js',

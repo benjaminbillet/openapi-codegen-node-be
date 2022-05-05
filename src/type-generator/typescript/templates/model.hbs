@@ -1,0 +1,11 @@
+{{#if isEnum}}
+  {{>enum}}
+{{else}}
+  {{#if isObject}}
+    {{>object}}
+  {{else}}
+    {{#if isComposition}}
+      {{>composition}}
+    {{/if}}
+  {{/if}}
+{{/if}}

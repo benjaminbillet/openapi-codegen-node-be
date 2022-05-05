@@ -1,0 +1,5 @@
+type {{name}} = {
+{{#each properties}}
+  {{{propName this.propName}}}{{>required this}}: {{>inline-type this}}{{>nullable this}},
+{{/each}}
+}{{>nullable}}{{#if isComposition}} & {{composition.name}}{{/if}};

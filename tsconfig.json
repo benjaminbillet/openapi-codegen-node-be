@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
-    "target": "es2022",
+    "target": "es2021",
     "module": "esnext",
     "moduleResolution": "node",
     "allowJs": true,
@@ -13,15 +13,10 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "declarationDir": "dist"
-  },
-  "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    }
+    "declarationDir": "dist",
   },
   "exclude": [
-    "tests",
+    "handlebars-loader",
     "node_modules",
     "dist",
     "webpack.config.js",

@@ -1,6 +1,7 @@
 node_modules
 src
 tests
+handlebars-loader
 .prettierrc
 babel.config.json
 webpack.config.js

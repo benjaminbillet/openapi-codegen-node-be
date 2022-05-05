@@ -1,0 +1,24 @@
+{{~#if isPrimitive~}}
+  {{~#if isEnum~}}
+    {{~name~}}
+  {{~else~}}
+    {{~primitiveType~}}
+  {{~/if~}}
+{{~/if~}}
+{{~#if isArray~}}
+  Array<
+    {{~#if isArrayOfPrimitive~}}
+      {{~itemType.primitiveType~}}
+    {{~else~}}
+      {{~>inline-type itemType~}}
+    {{~/if~}}
+  >
+{{~/if~}}
+{{~#if isObject~}}
+  {{~#if isDictionary~}}
+    {{~>dict~}}
+  {{~else~}}
+    {{~name~}}
+  {{~/if~}}
+{{~/if~}}
+
