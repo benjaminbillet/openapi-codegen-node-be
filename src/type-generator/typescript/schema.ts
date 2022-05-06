@@ -1,23 +1,23 @@
 import { OpenApiNode } from 'openapi-ref-resolver';
-import {
-  isArray,
-  isComposition,
-  isEnum,
-  isNullable,
-  isObject,
-  isPrimitive,
-  isReference,
-} from '../../openapi/v3/schema';
+import { isArray, isComposition, isEnum, isObject, isPrimitive, isReference } from '../../openapi/v3/schema';
 import { Dict } from '../../types/common';
 import { CompositionType } from '../../openapi/v3/types';
 import { capitalize } from '../../util/capitalize';
+import { ArrayModel, CompositionModel, Model, ModelType, ObjectModel, PrimitiveModel } from '../types';
 
 const getPrimitiveType = (schema: OpenApiNode) => {
-  let type = schema.type;
-  if (type === 'integer') {
-    type = 'number';
+  if (schema.type === 'integer') {
+    schema.type = 'number';
   }
-  return type;
+  if (schema.type === 'string') {
+    if (schema.format === 'date' || schema.format === 'date-time') {
+      return 'Date';
+    }
+    if (schema.format === 'binary') {
+      return 'Buffer';
+    }
+  }
+  return schema.type;
 };
 
 const ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJIKLMNOPQRSTUVWXYZ123456789_';
@@ -78,27 +78,29 @@ const processComposition = (
   schema: OpenApiNode,
   parentName: string,
   name?: string,
-) => {
+): CompositionModel => {
   const compositionType = Object.values(CompositionType).find((compositionType) => schema[compositionType] != null);
   if (compositionType == null) {
     throw new Error('Unknown composition type');
   }
   const myName = name || `${parentName}${capitalize(compositionType)}`;
   const refToIndex: Dict<number> = {};
-  const subSchemas = schema[compositionType].map((subSchema: OpenApiNode, index: number) => {
-    if (isReference(subSchema)) {
-      refToIndex[subSchema.$ref] = index;
-      const itemType = getNameFromRef(subSchema.$ref);
-      return processSchema(modelRegistry, document, subSchema, myName, itemType);
-    } else if (isPrimitive(subSchema)) {
-      return processSchema(modelRegistry, document, subSchema, myName);
-    }
-    let suffix = 'Option';
-    if (compositionType === 'allOf') {
-      suffix = 'Part';
-    }
-    return processSchema(modelRegistry, document, subSchema, myName, myName + suffix + (index + 1));
-  });
+  const subSchemas: CompositionModel['subSchemas'] = schema[compositionType].map(
+    (subSchema: OpenApiNode, index: number) => {
+      if (isReference(subSchema)) {
+        refToIndex[subSchema.$ref] = index;
+        const itemType = getNameFromRef(subSchema.$ref);
+        return processSchema(modelRegistry, document, subSchema, myName, itemType);
+      } else if (isPrimitive(subSchema)) {
+        return processSchema(modelRegistry, document, subSchema, myName);
+      }
+      let suffix = 'Option';
+      if (compositionType === 'allOf') {
+        suffix = 'Part';
+      }
+      return processSchema(modelRegistry, document, subSchema, myName, myName + suffix + (index + 1));
+    },
+  );
 
   let discriminator;
   let hasMapping = false;
@@ -122,25 +124,26 @@ const processComposition = (
     }
   }
   return {
+    ...schema,
+    modelType: ModelType.COMPOSITION,
     name: myName,
     compositionType,
     subSchemas,
     discriminator,
     hasMapping,
-    isComposition: true,
   };
 };
 
-const processPrimitive = (schema: OpenApiNode, parentName: string, name?: string) => {
-  const isPrimitiveEnum = isEnum(schema);
+const processPrimitive = (schema: OpenApiNode, parentName: string, name?: string): PrimitiveModel => {
+  const primitiveType = getPrimitiveType(schema);
+  const myName = name || (isEnum(schema) ? parentName + 'Enum' : parentName + capitalize(primitiveType));
   // TODO composition of primitives
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return {
-    name: name || (isPrimitiveEnum ? parentName + 'Enum' : undefined),
-    primitiveType: getPrimitiveType(schema),
-    nullable: isNullable(schema),
-    isPrimitive: true,
-    isEnum: isPrimitiveEnum,
-    original: schema,
+    ...schema,
+    modelType: ModelType.PRIMITIVE,
+    name: myName,
+    primitiveType,
   };
 };
 
@@ -150,25 +153,25 @@ const processArray = (
   schema: OpenApiNode,
   parentName: string,
   name?: string,
-) => {
+): ArrayModel => {
   const myName = name || `${parentName}Array`;
   let itemModel;
-  if (isReference(schema.items)) {
-    const itemType = getNameFromRef(schema.items.$ref);
-    itemModel = processSchema(modelRegistry, document, schema.items, myName, itemType);
-  } else if (isPrimitive(schema.items)) {
-    itemModel = processSchema(modelRegistry, document, schema.items, myName);
-  } else {
-    itemModel = processSchema(modelRegistry, document, schema.items, myName, myName + 'Item');
+  if (schema.items) {
+    if (isReference(schema.items)) {
+      const itemType = getNameFromRef(schema.items.$ref);
+      itemModel = processSchema(modelRegistry, document, schema.items, myName, itemType);
+    } else if (isPrimitive(schema.items)) {
+      itemModel = processSchema(modelRegistry, document, schema.items, myName);
+    } else {
+      itemModel = processSchema(modelRegistry, document, schema.items, myName, myName + 'Item');
+    }
   }
   // TODO composition of arrays
   return {
-    itemType: itemModel,
+    ...schema,
+    modelType: ModelType.ARRAY,
     name: myName,
-    nullable: isNullable(schema),
-    isArray: true,
-    isArrayOfPrimitive: itemModel.isPrimitive && !itemModel.isEnum,
-    original: schema,
+    items: itemModel,
   };
 };
 
@@ -178,9 +181,9 @@ export const processObject = (
   schema: OpenApiNode,
   parentName: string,
   name?: string,
-) => {
+): ObjectModel => {
   const myName = name || `${parentName}Object`;
-  const properties: any[] = Object.entries(schema.properties || []).map(([propName, prop]: any) => {
+  const properties: ObjectModel['properties'] = Object.entries(schema.properties || []).map(([propName, prop]: any) => {
     let propModel;
     if (isReference(prop)) {
       const propType = getNameFromRef(prop.$ref);
@@ -192,49 +195,46 @@ export const processObject = (
     }
     return {
       ...propModel,
-      required: Boolean((schema.required && schema.required.includes(propName)) || propModel.original.default != null),
+      required: Boolean((schema.required && schema.required.includes(propName)) || propModel.default != null),
       propName: propName,
-      propType: propModel.name,
     };
   });
-  const model: any = {
-    properties,
+
+  const { additionalProperties, ...schemaRest } = schema;
+  const model: ObjectModel = {
+    ...schemaRest,
+    modelType: ModelType.OBJECT,
     name: myName,
-    nullable: isNullable(schema),
-    isObject: true,
-    original: schema,
-    hasAdditionalProperties: Boolean(schema.additionalProperties),
+    properties,
   };
 
-  if (model.hasAdditionalProperties && typeof schema.additionalProperties === 'object') {
-    if (isReference(schema.additionalProperties)) {
-      const propType = getNameFromRef(schema.additionalProperties.$ref);
-      model.additionalProperties = processSchema(
-        modelRegistry,
-        document,
-        schema.additionalProperties,
-        myName,
-        propType,
-      );
-    } else if (isPrimitive(schema.additionalProperties)) {
+  if (additionalProperties && typeof additionalProperties === 'object') {
+    if (isReference(additionalProperties)) {
+      const propType = getNameFromRef(additionalProperties.$ref);
+      model.additionalProperties = processSchema(modelRegistry, document, additionalProperties, myName, propType);
+    } else if (isPrimitive(additionalProperties)) {
       model.additionalProperties = processSchema(modelRegistry, document, schema.additionalProperties, myName);
     } else {
       model.additionalProperties = processSchema(
         modelRegistry,
         document,
-        schema.additionalProperties,
+        additionalProperties,
         myName,
         myName + 'Item',
       );
     }
   }
-  if (model.hasAdditionalProperties && schema.properties == null) {
+  if (isComposition(schema)) {
+    model.composition = processComposition(modelRegistry, document, schema, myName);
+  } else if (additionalProperties && schema.properties == null) {
     model.isDictionary = true;
+  }
+  if (additionalProperties === true) {
+    model.hasAnyAdditionalProperties = true;
   }
 
   if (isComposition(schema)) {
     model.composition = processComposition(modelRegistry, document, schema, myName);
-    model.isComposition = true;
   }
 
   return model;
@@ -246,7 +246,7 @@ const processSchema = (
   schema: OpenApiNode,
   parentName: string,
   name?: string,
-) => {
+): Model => {
   if (name && modelRegistry.hasModel(name)) {
     return modelRegistry.getModel(name);
   }

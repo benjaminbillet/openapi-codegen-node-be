@@ -1,5 +1,9 @@
+{{~#if isDictionary~}}
+type {{name}} = {{>inline-type}};
+{{~else~}}
 type {{name}} = {
 {{#each properties}}
-  {{{propName this.propName}}}{{>required this}}: {{>inline-type this}}{{>nullable this}},
+  {{{propName this.propName}}}{{>required this}}: {{>inline-type this}},
 {{/each}}
-}{{>nullable}}{{#if isComposition}} & {{composition.name}}{{/if}};
+}{{#if composition}} & {{>inline-type composition}}{{/if}}{{#if additionalProperties}} & Dict<unknown>{{/if}}{{#if hasAnyAdditionalProperties}} & Dict<any>{{/if}};
+{{~/if~}}

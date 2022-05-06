@@ -1,24 +1,33 @@
-{{~#if isPrimitive~}}
-  {{~#if isEnum~}}
+{{~#equals modelType 'primitive'~}}
+  {{~#if enum~}}
     {{~name~}}
   {{~else~}}
     {{~primitiveType~}}
   {{~/if~}}
-{{~/if~}}
-{{~#if isArray~}}
-  Array<
-    {{~#if isArrayOfPrimitive~}}
-      {{~itemType.primitiveType~}}
-    {{~else~}}
-      {{~>inline-type itemType~}}
-    {{~/if~}}
-  >
-{{~/if~}}
-{{~#if isObject~}}
-  {{~#if isDictionary~}}
-    {{~>dict~}}
+{{~/equals~}}
+{{~#equals modelType 'array'~}}
+  {{~#if items~}}
+    Array<{{~>inline-type items~}}>
   {{~else~}}
-    {{~name~}}
+    Array<any>
   {{~/if~}}
-{{~/if~}}
-
+{{~/equals~}}
+{{~#equals modelType 'object'~}}
+  {{~#if isDictionary~}}
+    {{~#if additionalProperties~}}
+        Dict<{{>inline-type additionalProperties}}>
+      {{~else~}}
+        Dict<any>
+    {{~/if~}}
+  {{~else~}}
+    {{~#if composition~}}
+      {{>inline-type composition}}
+    {{~else~}}
+      {{~name~}}
+    {{~/if~}}
+  {{~/if~}}
+{{~/equals~}}
+{{~#equals modelType 'composition'~}}
+  {{~name~}}
+{{~/equals~}}
+{{#if nullable}} | null{{/if}}

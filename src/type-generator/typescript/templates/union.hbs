@@ -1,1 +1,4 @@
-{{#each subSchemas}}{{#unless @first}} | {{/unless}}{{#if (hasMapping @index)}}Derived<{{name}}, '{{../discriminator}}', { {{{propName ../discriminator}}}: '{{this.discriminatorValue}}' }>{{else}}{{> inline-type this}}{{/if}}{{/each}}
+{{~#each subSchemas~}}
+  {{~#unless @first}} | {{/unless~}}
+  {{~#if (hasMapping @index)}}Derived<{{> inline-type this}}, '{{../discriminator}}', { {{{propName ../discriminator}}}: '{{this.discriminatorValue}}' }>{{~else~}}{{> inline-type this}}{{~/if~}}
+{{~/each~}}

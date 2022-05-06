@@ -1,11 +1,12 @@
-{{#if isEnum}}
-  {{>enum}}
-{{else}}
-  {{#if isObject}}
-    {{>object}}
-  {{else}}
-    {{#if isComposition}}
-      {{>composition}}
-    {{/if}}
-  {{/if}}
-{{/if}}
+{{~#equals modelType 'primitive'~}}
+  {{~>primitive~}}
+{{~/equals~}}
+{{~#equals modelType 'object'~}}
+  {{~>object~}}
+{{~/equals~}}
+{{~#equals modelType 'array'~}}
+  {{~>array~}}
+{{~/equals~}}
+{{~#equals modelType 'composition'~}}
+  {{~>composition~}}
+{{~/equals~}}
