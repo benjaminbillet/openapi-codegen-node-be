@@ -1,0 +1,12 @@
+/* tslint:disable */
+/* eslint-disable */
+/* istanbul ignore file */
+
+export type Dict<V = string> = { [key: string]: V };
+
+export type Derived<T, Keys extends keyof T, U> = Omit<T, Keys> & U;
+
+{{#each models}}
+export {{>model this}}
+
+{{/each}}

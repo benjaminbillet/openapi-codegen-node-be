@@ -1,14 +1,11 @@
 import Handlebars from 'handlebars/runtime';
 import { OpenApiNode } from 'openapi-ref-resolver';
-import { configureHandlebars as configureForTypeGeneration } from '../../../src/type-generator';
-import { configureHandlebars as configureForTypescriptGeneration } from '../../../src/type-generator/typescript';
-import processModels, { ModelRegistry } from '../../../src/type-generator/typescript/schema';
-import modelTemplate from '../../../src/type-generator/typescript/templates/model.hbs';
-import { Dict } from '../../../src/types/common';
+import { configureHandlebars } from '../../src/type-generator';
+import modelTemplate from '../../src/type-generator/templates/model.hbs';
+import { processSpec } from '../../src/generator/model';
 
 const handlebars = Handlebars.create();
-configureForTypeGeneration(handlebars);
-configureForTypescriptGeneration(handlebars);
+configureHandlebars(handlebars);
 
 const buildApi = (name: string, schema: OpenApiNode): OpenApiNode => ({
   components: {
@@ -23,10 +20,9 @@ describe('object code generation', () => {
     const api = buildApi('my-schema', {
       type: 'object',
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
-    expect(generated).toBe('type MySchema = {\n};');
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
+    expect(generated).toBe('interface MySchema {\n};');
   });
 
   it('object with primitive prop', () => {
@@ -38,10 +34,9 @@ describe('object code generation', () => {
         },
       },
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
-    expect(generated).toBe('type MySchema = {\n  prop?: string,\n};');
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
+    expect(generated).toBe('interface MySchema {\n  prop?: string,\n};');
   });
 
   it('any dict', () => {
@@ -49,9 +44,8 @@ describe('object code generation', () => {
       type: 'object',
       additionalProperties: true,
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
     expect(generated).toBe('type MySchema = Dict<any>;');
   });
 
@@ -62,9 +56,8 @@ describe('object code generation', () => {
         type: 'number',
       },
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
     expect(generated).toBe('type MySchema = Dict<number>;');
   });
 
@@ -78,9 +71,8 @@ describe('object code generation', () => {
         },
       },
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
     expect(generated).toBe('type MySchema = {\n  prop?: string,\n} & Dict<any>;');
   });
 
@@ -96,9 +88,8 @@ describe('object code generation', () => {
         },
       },
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
     expect(generated).toBe('type MySchema = {\n  prop?: string,\n} & Dict<unknown>;');
   });
 
@@ -115,9 +106,8 @@ describe('object code generation', () => {
       },
       oneOf: [{ type: 'object' }, { type: 'object' }],
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
     expect(generated).toBe('type MySchema = {\n  prop?: string,\n} & MySchemaOneOf & Dict<unknown>;');
   });
 
@@ -146,11 +136,10 @@ describe('object code generation', () => {
         },
       },
     });
-    const modelRegistry = new ModelRegistry();
-    processModels(modelRegistry, api);
-    const generated = handlebars.template(modelTemplate)(modelRegistry.getModels()['MySchema']);
+    const { models } = processSpec(api);
+    const generated = handlebars.template(modelTemplate)(models['MySchema']);
     expect(generated).toBe(
-      'type MySchema = {\n  prop1: string,\n  prop2: Date | null,\n  prop3?: number,\n  prop4?: boolean | null,\n  prop5?: MySchemaProp5,\n};',
+      'interface MySchema {\n  prop1: string,\n  prop2: Date | null,\n  prop3?: number,\n  prop4?: boolean | null,\n  prop5?: MySchemaProp5,\n};',
     );
   });
 });

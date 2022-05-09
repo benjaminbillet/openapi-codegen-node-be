@@ -2,7 +2,27 @@
   {{~#if enum~}}
     {{~name~}}
   {{~else~}}
-    {{~primitiveType~}}
+    {{~#equals type 'string'~}}
+      {{~#equals format 'date'~}}
+        Date
+      {{~else~}}
+        {{~#equals format 'date-time'~}}
+          Date
+        {{~else~}}
+          {{~#equals format 'binary'~}}
+            Buffer
+          {{~else~}}
+            {{type}}
+          {{~/equals~}}
+        {{~/equals~}}
+      {{~/equals~}}
+    {{~else~}}
+      {{~#equals type 'integer'~}}
+        number
+      {{~else~}}
+        {{type}}
+      {{~/equals~}}
+    {{~/equals~}}    
   {{~/if~}}
 {{~/equals~}}
 {{~#equals modelType 'array'~}}

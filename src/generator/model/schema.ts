@@ -4,73 +4,8 @@ import { Dict } from '../../types/common';
 import { CompositionType } from '../../openapi/v3/types';
 import { capitalize } from '../../util/capitalize';
 import { ArrayModel, CompositionModel, Model, ModelType, ObjectModel, PrimitiveModel } from '../types';
-
-const getPrimitiveType = (schema: OpenApiNode) => {
-  if (schema.type === 'integer') {
-    schema.type = 'number';
-  }
-  if (schema.type === 'string') {
-    if (schema.format === 'date' || schema.format === 'date-time') {
-      return 'Date';
-    }
-    if (schema.format === 'binary') {
-      return 'Buffer';
-    }
-  }
-  return schema.type;
-};
-
-const ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJIKLMNOPQRSTUVWXYZ123456789_';
-const escapeName = (s: string) => {
-  const original = [...s];
-  let capitalizeNext = true;
-  const nameArray = original.map((char) => {
-    if (ALLOWED_CHARS.indexOf(char) >= 0) {
-      if (capitalizeNext) {
-        capitalizeNext = false;
-        return char.toUpperCase();
-      }
-      return char;
-    }
-    capitalizeNext = true;
-    return null;
-  });
-
-  let name = nameArray.filter((c) => c != null).join('');
-  if (name.match(/^[0-9]/)) {
-    name = `_${name}`;
-  }
-  return name;
-};
-const getNameFromRef = (ref: string) => {
-  const [, , , name] = ref.split('/');
-  return escapeName(name);
-};
-
-export class ModelRegistry {
-  private models: Dict<any> = {};
-
-  registerModel(name: string, model: any) {
-    this.models[name] = model;
-  }
-  getModel(name: string) {
-    return this.models[name];
-  }
-  hasModel(name: string) {
-    return this.getModel(name) != null;
-  }
-  getModels() {
-    return this.models;
-  }
-}
-
-const resolveReference = (document: OpenApiNode, schema: OpenApiNode) => {
-  if (isReference(schema)) {
-    const [, , componentType, schemaName] = schema.$ref.split('/');
-    return document.components[componentType][schemaName];
-  }
-  return schema;
-};
+import { escapeName, getNameFromRef, ModelRegistry } from './model-registry';
+import { resolveReference } from '../../util/document';
 
 const processComposition = (
   modelRegistry: ModelRegistry,
@@ -135,15 +70,12 @@ const processComposition = (
 };
 
 const processPrimitive = (schema: OpenApiNode, parentName: string, name?: string): PrimitiveModel => {
-  const primitiveType = getPrimitiveType(schema);
-  const myName = name || (isEnum(schema) ? parentName + 'Enum' : parentName + capitalize(primitiveType));
+  const myName = name || (isEnum(schema) ? parentName + 'Enum' : parentName + capitalize(schema.format || schema.type));
   // TODO composition of primitives
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return {
     ...schema,
     modelType: ModelType.PRIMITIVE,
     name: myName,
-    primitiveType,
   };
 };
 
@@ -232,9 +164,8 @@ export const processObject = (
   if (additionalProperties === true) {
     model.hasAnyAdditionalProperties = true;
   }
-
-  if (isComposition(schema)) {
-    model.composition = processComposition(modelRegistry, document, schema, myName);
+  if (model.composition == null && schema.additionalProperties == null) {
+    model.interface = true;
   }
 
   return model;
@@ -276,8 +207,19 @@ const processSchema = (
   return model;
 };
 
-export default (modelRegistry: ModelRegistry, spec: OpenApiNode) => {
+export const processModel = (
+  spec: OpenApiNode,
+  modelName: string,
+  schema: OpenApiNode,
+  modelRegistry: ModelRegistry,
+) => {
+  return processSchema(modelRegistry, spec, schema, '', modelName);
+};
+
+export const processModels = (spec: OpenApiNode, modelRegistry?: ModelRegistry) => {
+  const registry = modelRegistry || new ModelRegistry();
   Object.entries(spec.components.schemas).forEach(([name, schema]: any) => {
-    processSchema(modelRegistry, spec, schema, '', escapeName(name));
+    processModel(spec, escapeName(name), schema, registry);
   });
+  return registry;
 };

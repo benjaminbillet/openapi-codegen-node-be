@@ -4,6 +4,7 @@ info:
 paths:
   /api/resources/{resource-id}/sub-resources/{sub-resource-id}:
     get:
+      operationId: getSubResource
       parameters:
         - name: resource-id
           in: query

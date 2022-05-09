@@ -1,3 +1,14 @@
+import { OpenApiNode } from '../../../openapi-ref-resolver';
+import { Dict } from '../types/common';
+
+export interface Generator<T extends BaseOptions> {
+  generate: (spec: OpenApiNode, options: T) => void;
+}
+
+export interface BaseOptions {
+  outputDir: string;
+}
+
 interface BaseModel {
   name: string;
   nullable?: boolean;
@@ -16,7 +27,6 @@ export enum ModelType {
 
 export interface PrimitiveModel extends BaseModel {
   modelType: 'primitive';
-  primitiveType: string;
   enum?: string[];
   multipleOf?: number;
   maximum?: number;
@@ -36,6 +46,7 @@ export interface ObjectModel extends BaseModel {
   hasAnyAdditionalProperties?: boolean;
   additionalProperties?: Model;
   isDictionary?: boolean;
+  interface?: boolean;
 
   maxProperties?: number;
   minProperties?: number;
@@ -59,3 +70,30 @@ export interface CompositionModel extends BaseModel {
 }
 
 export type Model = PrimitiveModel | ArrayModel | ObjectModel | CompositionModel;
+
+export interface OperationParameter {
+  name: string;
+  in: 'path' | 'header' | 'query' | 'cookie';
+  description?: string;
+  required?: boolean;
+  deprecated?: boolean;
+  allowEmptyValue?: boolean;
+  style?: 'form' | 'simple';
+  explode?: boolean;
+  allowReserved?: boolean;
+  mimeType?: string;
+  schema: Model;
+}
+
+export interface Operation {
+  path: string;
+  constantName: string;
+  method: string;
+  operationId: string;
+  parameters: OperationParameter[];
+}
+
+export interface GenerateContext {
+  models: Dict<Model>;
+  operations: Dict<Operation[]>;
+}

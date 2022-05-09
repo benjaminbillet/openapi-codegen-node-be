@@ -1,3 +1,8 @@
+{{~#if description~}}
+/**
+ * {{{escapeComment description}}}
+ */
+{{~/if~}}
 {{~#equals modelType 'primitive'~}}
   {{~>primitive~}}
 {{~/equals~}}
