@@ -1,0 +1,49 @@
+/* tslint:disable */
+/* eslint-disable */
+/* istanbul ignore file */
+import { Joi } from 'celebrate';
+import { Schema } from 'joi';
+
+const unionSchema = (
+  mappedSchemas: { [key: string]: Schema },
+  unmappedSchemas: Schema[],
+  compositionType: 'oneOf' | 'anyOf',
+  discriminator?: string,
+) => {
+  const mappings = Object.entries(mappedSchemas);
+
+  const matchMode = compositionType === 'oneOf' ? 'one' : 'any';
+  const unmappedUnion = Joi.alternatives()
+    .try(...unmappedSchemas)
+    .match(matchMode);
+
+  if (discriminator == null || mappings.length === 0) {
+    return unmappedUnion;
+  }
+
+  const branches = [
+    Joi.alternatives().conditional(Joi.object({ [discriminator]: mappings[0][0] }).unknown(), {
+      then: mappings[0][1],
+      otherwise: unmappedSchemas.length === 0 ? Joi.forbidden() : unmappedUnion,
+    }),
+  ];
+  for (let i = 1; i < mappings.length; i++) {
+    const branch = Joi.alternatives().conditional(Joi.object({ [discriminator]: mappings[i][0] }).unknown(), {
+      then: mappings[i][1],
+      otherwise: branches[i - 1],
+    });
+    branches.push(branch);
+  }
+  return branches.pop();
+};
+
+const intersectionSchema = (schemas: Schema[]) => {
+  return Joi.alternatives()
+    .try(...schemas)
+    .match('all');
+};
+
+{{#each models}}
+export {{>model this}}
+
+{{/each}}

@@ -1,0 +1,21 @@
+.string()
+{{~#if enum~}}
+  .valid({{#each enum}}'{{{this}}}'{{#unless @last}}, {{/unless}}{{/each}})
+{{~else~}}
+  {{~#if minLength~}}.min({{minLength}}){{~else~}}.allow(''){{~/if~}}
+  {{~#if maxLength~}}.max({{maxLength}}){{~/if~}}
+  {{~#if pattern~}}.pattern(/{{pattern}}/){{~/if~}}
+  {{~#equals format 'email'~}}.email(){{~/equals~}}
+  {{~#equals format 'uuid'~}}.uuid(){{~/equals~}}
+  {{~#equals format 'hostname'~}}.hostname(){{~/equals~}}
+  {{~#equals format 'uuid'~}}.uuid(){{~/equals~}}
+  {{~#equals format 'uri'~}}.uri(){{~/equals~}}
+  {{~#equals format 'ipv4'~}}.ip({ version: ['ipv4'] }){{~/equals~}}
+  {{~#equals format 'ipv6'~}}.ip({ version: ['ipv6'] }){{~/equals~}}
+  {{~#equals format 'byte'~}}.base64({ version: ['ipv6'] }){{~/equals~}}
+  {{~#equals format 'date'~}}.isoDate(){{~/equals~}}
+  {{~#equals format 'date-time'~}}.isoDate(){{~/equals~}}
+  {{~#equals format 'duration'~}}.isoDuration(){{~/equals~}}
+  {{~#equals format 'mongoId'~}}.hex().length(24){{~/equals~}}
+  {{~#equals format 'hex'~}}.hex(){{~/equals~}}
+{{~/if~}}

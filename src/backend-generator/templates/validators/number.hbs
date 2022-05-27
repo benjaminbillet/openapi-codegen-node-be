@@ -1,0 +1,32 @@
+{{#equals type integer}}
+  {{#if minimum}}
+    {{#if exclusiveMinimum}}
+      body('', isInt({ gt: {{minimum}}))
+    {{else}}
+      body('', isInt({ min: {{minimum}}))
+    {{/if}}
+  {{/if}}
+  {{#if maximum}}
+    {{#if exclusiveMaximum}}
+      body('', isInt({ lt: {{maximum}}))
+    {{else}}
+      body('', isInt({ max: {{maximum}}))
+    {{/if}}
+  {{/if}}
+{{/equals}}
+{{#equals type number}}
+  {{#if minimum}}
+    {{#if exclusiveMinimum}}
+      body('', isFloat({ gt: {{minimum}}))
+    {{else}}
+      body('', isFloat({ min: {{minimum}}))
+    {{/if}}
+  {{/if}}
+  {{#if maximum}}
+    {{#if exclusiveMaximum}}
+      body('', isFloat({ lt: {{maximum}}))
+    {{else}}
+      body('', isFloat({ max: {{maximum}}))
+    {{/if}}
+  {{/if}}
+{{/equals}} 

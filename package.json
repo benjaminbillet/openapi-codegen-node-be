@@ -47,6 +47,7 @@
     "babel-jest": "^27.5.1",
     "babel-loader": "^8.2.5",
     "babel-plugin-inline-import": "^3.0.0",
+    "celebrate": "^15.0.1",
     "copy-webpack-plugin": "^10.2.4",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",

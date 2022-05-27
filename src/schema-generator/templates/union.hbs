@@ -1,0 +1,6 @@
+unionSchema(
+  { {{~#each mappedSubSchemas~}}{{~#unless @first~}}, {{/unless~}}'{{discriminatorValue}}': {{>inline-type this~}}{{~/each~}} },
+  [{{~#each unmappedSubSchemas~}}{{~#unless @first~}}, {{/unless~}}{{~>inline-type this~}}{{~/each~}}],
+  '{{compositionType}}',
+  {{#if discriminator}}'{{discriminator}}'{{else}}undefined{{/if}},
+)

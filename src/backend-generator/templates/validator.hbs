@@ -1,0 +1,22 @@
+{{#if enum}}
+body('', isIn('{{join enum "', '"}}'))
+{{/if}}
+{{#if multipleOf}}
+  body('', isIn('{{join enum "', '"}}'))
+{{/if}}
+{{#if enum}}
+  body('', isIn('{{join enum "', '"}}'))
+{{/if}}
+{{#if enum}}
+  body('', isIn('{{join enum "', '"}}'))
+{{/if}}
+
+multipleOf?: number;
+maximum?: number;
+exclusiveMaximum?: boolean;
+minimum?: number;
+exclusiveMinimum?: boolean;
+maxLength?: number;
+minLength?: number;
+pattern?: string;
+format?: string;

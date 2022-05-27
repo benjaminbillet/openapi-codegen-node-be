@@ -1,0 +1,11 @@
+{{~#if isDictionary~}}
+  {{~>inline-type~}}
+{{~else~}}
+{{~#if composition~}}intersectionSchema({{>inline-type composition}}, {{/if~}}
+Joi.object({
+{{#each properties}}
+  {{{propName this.propName}}}: {{>inline-type this}},
+{{/each}}
+}){{#if additionalProperties}}.pattern(/.+/, [{{~>inline-type additionalProperties~}}]{{/if}}{{#if hasAnyAdditionalProperties}}.pattern(/.+/, [Joi.any()]{{/if}}
+{{~/if~}}
+{{~#if composition~}}){{~/if~}}

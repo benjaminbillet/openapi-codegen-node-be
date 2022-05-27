@@ -1,0 +1,3 @@
+intersectionSchema(
+  [{{~#each unmappedSubSchemas~}}{{~#unless @first~}}, {{/unless~}}{{~>inline-type this~}}{{~/each~}}],
+)

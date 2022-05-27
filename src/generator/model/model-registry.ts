@@ -1,4 +1,5 @@
 import { Dict } from '../../types/common';
+import { Model } from '../types';
 
 const ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJIKLMNOPQRSTUVWXYZ123456789_';
 export const escapeName = (s: string) => {
@@ -29,7 +30,7 @@ export const getNameFromRef = (ref: string) => {
 };
 
 export class ModelRegistry {
-  private models: Dict<any> = {};
+  private models: Dict<Model> = {};
 
   registerModel(name: string, model: any) {
     this.models[name] = model;

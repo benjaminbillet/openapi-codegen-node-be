@@ -15,7 +15,7 @@ const buildApi = (name: string, schema: OpenApiNode): OpenApiNode => ({
   },
 });
 
-describe('primitive code generation', () => {
+describe('primitive type generation', () => {
   it('string type', () => {
     const api = buildApi('my-schema', {
       type: 'string',

@@ -2,8 +2,16 @@ import { OpenApiNode } from 'openapi-ref-resolver';
 import { isArray, isComposition, isEnum, isObject, isPrimitive, isReference } from '../../openapi/v3/schema';
 import { Dict } from '../../types/common';
 import { CompositionType } from '../../openapi/v3/types';
-import { capitalize } from '../../util/capitalize';
-import { ArrayModel, CompositionModel, Model, ModelType, ObjectModel, PrimitiveModel } from '../types';
+import { capitalize } from '../../util/misc';
+import {
+  ArrayModel,
+  CompositionModel,
+  DiscriminatedModel,
+  Model,
+  ModelType,
+  ObjectModel,
+  PrimitiveModel,
+} from '../types';
 import { escapeName, getNameFromRef, ModelRegistry } from './model-registry';
 import { resolveReference } from '../../util/document';
 
@@ -63,9 +71,11 @@ const processComposition = (
     modelType: ModelType.COMPOSITION,
     name: myName,
     compositionType,
-    subSchemas,
     discriminator,
     hasMapping,
+    subSchemas,
+    mappedSubSchemas: subSchemas.filter((s): s is DiscriminatedModel => s.discriminatorValue != null),
+    unmappedSubSchemas: subSchemas.filter((s): s is Model => s.discriminatorValue == null),
   };
 };
 

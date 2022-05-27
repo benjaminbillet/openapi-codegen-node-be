@@ -1,0 +1,3 @@
+{{#each properties}}
+  k={{@key}} p={{join (stack-full 'path') '.'}} {{>root (join (stack-push 'path' @key) '.')}}
+{{/each}}

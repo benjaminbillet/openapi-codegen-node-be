@@ -1,12 +1,11 @@
 import { OpenApiNode } from '../../../../openapi-ref-resolver';
 import { escapeName, getNameFromRef, ModelRegistry } from './model-registry';
 import { isReference } from '../../openapi/v3/schema';
-import { capitalize } from '../../util/capitalize';
+import { capitalize, toSnakeUppercase } from '../../util/misc';
 import { Dict } from '../../types/common';
 import { processModel } from './schema';
 import { resolveReference } from '../../util/document';
-import { Model, ModelType, ObjectModel, Operation, OperationParameter } from '../types';
-import { getConstantName } from '../../type-generator';
+import { ModelType, ObjectModel, Operation, OperationParameter } from '../types';
 
 const METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 const PARAM_TYPES = ['query', 'header', 'path', 'cookie'];
@@ -209,7 +208,7 @@ export const processOperations = (spec: OpenApiNode, modelRegistry?: ModelRegist
         operations[path].push({
           path,
           method,
-          constantName: getConstantName(operation.name),
+          constantName: toSnakeUppercase(operation.name),
           // defaultParameters,
           ...operation,
         });

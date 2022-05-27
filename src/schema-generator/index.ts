@@ -4,8 +4,6 @@ import { EOL } from 'os';
 import path from 'path';
 import fs from 'fs';
 import enumPartial from './templates/enum.hbs';
-import nullable from './templates/nullable.hbs';
-import required from './templates/required.hbs';
 import array from './templates/array.hbs';
 import object from './templates/object.hbs';
 import inlineType from './templates/inline-type.hbs';
@@ -13,8 +11,12 @@ import composition from './templates/composition.hbs';
 import union from './templates/union.hbs';
 import intersection from './templates/intersection.hbs';
 import primitive from './templates/primitive.hbs';
-import model from './templates/model.hbs';
-import typesTemplate from './templates/types.hbs';
+import inlinePrimitive from './templates/inline/primitive.hbs';
+import inlineString from './templates/inline/string.hbs';
+import inlineNumber from './templates/inline/number.hbs';
+import inlineObject from './templates/inline/object.hbs';
+import schema from './templates/schema.hbs';
+import schemasTemplate from './templates/schemas.hbs';
 import { isArray, isObject, isPrimitive } from '../openapi/v3/schema';
 import { Dict } from '../types/common';
 import { ModelType } from '../generator/types';
@@ -64,8 +66,6 @@ export const configureHandlebars = (handlebars: typeof Handlebars) => {
   });
 
   handlebars.registerPartial('enum', handlebars.template(enumPartial));
-  handlebars.registerPartial('nullable', handlebars.template(nullable));
-  handlebars.registerPartial('required', handlebars.template(required));
   handlebars.registerPartial('array', handlebars.template(array));
   handlebars.registerPartial('object', handlebars.template(object));
   handlebars.registerPartial('inline-type', handlebars.template(inlineType));
@@ -73,7 +73,12 @@ export const configureHandlebars = (handlebars: typeof Handlebars) => {
   handlebars.registerPartial('union', handlebars.template(union));
   handlebars.registerPartial('intersection', handlebars.template(intersection));
   handlebars.registerPartial('primitive', handlebars.template(primitive));
-  handlebars.registerPartial('model', handlebars.template(model));
+  handlebars.registerPartial('schema', handlebars.template(schema));
+
+  handlebars.registerPartial('inline/primitive', handlebars.template(inlinePrimitive));
+  handlebars.registerPartial('inline/string', handlebars.template(inlineString));
+  handlebars.registerPartial('inline/number', handlebars.template(inlineNumber));
+  handlebars.registerPartial('inline/object', handlebars.template(inlineObject));
 };
 
 export const generate = (spec: OpenApiNode, options: Dict = { outputDir: 'gen' }) => {
@@ -86,9 +91,9 @@ export const generate = (spec: OpenApiNode, options: Dict = { outputDir: 'gen' }
   const handlebars = Handlebars.create();
   configureHandlebars(handlebars);
 
-  const template = handlebars.template(typesTemplate);
+  const template = handlebars.template(schemasTemplate);
 
-  const outputFile = path.resolve(options.outputDir, 'types.ts');
+  const outputFile = path.resolve(options.outputDir, 'schemas.ts');
   const code = template({ models: modelsToGenerate });
   fs.writeFileSync(outputFile, code, { flag: 'w' });
 };

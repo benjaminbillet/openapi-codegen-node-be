@@ -1,0 +1,4 @@
+.number()
+{{~#if multipleOf~}}.multiple({{multipleOf}}){{~/if~}}
+{{~#if minimum~}}.{{~#if exclusiveMinimum~}}greater{{else}}min{{~/if~}}({{minimum}}){{~/if~}}
+{{~#if maximum~}}.{{~#if exclusiveMaximum~}}lesser{{else}}max{{~/if~}}({{maximum}}){{~/if~}}

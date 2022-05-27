@@ -65,11 +65,14 @@ export interface CompositionModel extends BaseModel {
   modelType: 'composition';
   compositionType: 'oneOf' | 'anyOf' | 'allOf';
   subSchemas: Array<Model & { discriminatorValue?: string }>;
+  mappedSubSchemas: Array<DiscriminatedModel>;
+  unmappedSubSchemas: Array<Model>;
   discriminator?: string;
   hasMapping: boolean;
 }
 
 export type Model = PrimitiveModel | ArrayModel | ObjectModel | CompositionModel;
+export type DiscriminatedModel = Model & { discriminatorValue: string };
 
 export interface OperationParameter {
   name: string;

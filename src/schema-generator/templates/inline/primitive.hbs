@@ -1,0 +1,22 @@
+Joi
+{{~#equals type 'string'~}}
+  {{~#equals format 'date'~}}
+    .date().iso()
+  {{~else~}}
+    {{~#equals format 'date-time'~}}
+      .date().iso()
+    {{~else~}}
+      {{~#equals format 'binary'~}}
+        .binary()
+      {{~else~}}
+        {{~>inline/string}}
+      {{~/equals~}}
+    {{~/equals~}}
+  {{~/equals~}}
+{{~else~}}
+  {{~#equals type 'boolean'~}}
+    .boolean()
+  {{~else~}}
+    {{~>inline/number}}
+  {{~/equals~}}
+{{~/equals~}}

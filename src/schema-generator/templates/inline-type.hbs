@@ -1,0 +1,30 @@
+{{~#equals modelType 'primitive'~}}
+  {{~>inline/primitive~}}
+{{~/equals~}}
+{{~#equals modelType 'array'~}}
+  {{~#if items~}}
+    Array<{{~>inline-type items~}}>
+    {{~else~}}
+    Array<any>
+  {{~/if~}}
+{{~/equals~}}
+{{~#equals modelType 'object'~}}
+  {{~#if isDictionary~}}
+    {{~#if additionalProperties~}}
+        Joi.object().pattern(/.+/, [{{>inline-type additionalProperties}}])
+      {{~else~}}
+        Joi.object()
+    {{~/if~}}
+  {{~else~}}
+    {{~#if composition~}}
+      {{~>inline-type composition~}}
+    {{~else~}}
+      {{~name~}}
+    {{~/if~}}
+  {{~/if~}}
+{{~/equals~}}
+{{~#equals modelType 'composition'~}}
+  {{~name~}}
+{{~/equals~}}
+{{~#if nullable~}}.allow(null){{~/if~}}
+{{~#if required~}}.required(){{~/if~}}
